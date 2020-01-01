@@ -1,12 +1,22 @@
 <template>
   <div class="search-bar">
     <input class="search-bar__input" v-model="query" @input="search" />
-    <ul v-if="search_results" class="search-bar__results-list">
-      <li
-        class="search-bar__results-list__item"
-        v-for="result in search_results"
-        :key="result.id"
-      >{{ result.title }}</li>
+    <ul v-if="issues" class="search-bar__results-list">
+      <li class="search-bar__results-list__item" v-for="issue in issues" :key="issue.id">
+        <a :href="issue.html_url" target="_blank">
+          <div>
+            <span>{{ issue.title }}</span>
+            <div>
+              <span
+                v-for="label in issue.labels"
+                :key="label.id"
+                :style="{ 'background-color': '#'+label.color } "
+              >{{ label.name }}</span>
+            </div>
+            <span>#{{ issue.number }} opened {{ getDays(issue.created_at) }} by {{ issue.user.login }}</span>
+          </div>
+        </a>
+      </li>
     </ul>
   </div>
 </template>
@@ -25,9 +35,9 @@ export default {
     search_api_url() {
       return `https://api.github.com/search/issues?q=${this.query}+repo%3Afacebook%2Freact`;
     },
-    search_results() {
-      if (this.query) {
-        return this.api_response.items;
+    issues() {
+      if (this.query && this.api_response) {
+        return this.api_response.items.slice(0, 7);
       } else {
         return [];
       }
