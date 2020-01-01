@@ -51,7 +51,45 @@ export default {
             console.log(err);
           });
       }
-    }, 100)
+    }, 50),
+    formatDate: function(date) {
+      var monthNames = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ];
+
+      var day = date.getDate();
+      var monthIndex = date.getMonth();
+      var year = date.getFullYear();
+
+      return day + " " + monthNames[monthIndex] + " " + year;
+    },
+    getDays(created_at) {
+      let now_date = new Date();
+      let created_date = new Date(created_at);
+      let days_diff =
+        (now_date.getTime() - created_date.getTime()) / (1000 * 3600 * 24);
+
+      if (days_diff < 1) {
+        return "today";
+      } else if (days_diff == 1) {
+        return "yesterday";
+      } else if (days_diff <= 10) {
+        return days_diff + " days ago";
+      } else {
+        return "on " + this.formatDate(created_date);
+      }
+    }
   }
 };
 </script>
