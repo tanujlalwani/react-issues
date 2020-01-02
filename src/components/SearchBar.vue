@@ -28,7 +28,9 @@ export default {
   data() {
     return {
       query: null,
-      api_response: null
+      api_response: null,
+      api_limit_exceeded: false,
+      selected_issue: -1
     };
   },
   computed: {
@@ -36,10 +38,29 @@ export default {
       return `https://api.github.com/search/issues?q=${this.query}+repo%3Afacebook%2Freact`;
     },
     issues() {
-      if (this.query && this.api_response) {
+      if (
+        this.query &&
+        this.api_response &&
+        this.api_response.total_count > 0
+      ) {
         return this.api_response.items.slice(0, 7);
       } else {
         return [];
+      }
+    },
+    no_results() {
+      return this.query != "" &&
+        this.api_response &&
+        this.api_response.total_count <= 0
+        ? true
+        : false;
+    }
+  },
+  watch: {
+    query: function() {
+      if (this.query == "") {
+        this.api_response = null;
+        this.api_limit_exceeded = false;
       }
     }
   },
@@ -52,16 +73,22 @@ export default {
             authorization: "token 029caf468d6280e5e85a83e7393c7056a423b7e9"
           }
         })
-          .then(response => response.json())
+          .then(response => {
+            if (response.status == 200) {
+              this.api_limit_exceeded = false;
+              return response.json();
+            } else if (response.status == 403) {
+              this.api_limit_exceeded = true;
+              return {
+                total_count: 0
+              };
+            }
+          })
           .then(data => {
             this.api_response = data;
-          })
-          .catch(err => {
-            // eslint-disable-next-line no-console
-            console.log(err);
           });
       }
-    }, 50),
+    }, 10),
     formatDate: function(date) {
       var monthNames = [
         "January",
