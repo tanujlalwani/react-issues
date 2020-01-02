@@ -1,21 +1,43 @@
 <template>
   <div class="search-bar">
-    <input class="search-bar__input" v-model="query" @input="search" />
-    <ul v-if="issues" class="search-bar__results-list">
-      <li class="search-bar__results-list__item" v-for="issue in issues" :key="issue.id">
-        <a :href="issue.html_url" target="_blank">
-          <div>
-            <span>{{ issue.title }}</span>
-            <div>
-              <span
-                v-for="label in issue.labels"
-                :key="label.id"
-                :style="{ 'background-color': '#'+label.color } "
-              >{{ label.name }}</span>
-            </div>
-            <span>#{{ issue.number }} opened {{ getDays(issue.created_at) }} by {{ issue.user.login }}</span>
-          </div>
-        </a>
+    <input
+      class="search-bar__input"
+      :class="{ 'search-bar__input--active': query }"
+      v-model="query"
+      @input="search"
+      placeholder="Search for an issue..."
+    />
+    <ul v-if="no_results" class="search-bar__issue-list">
+      <li class="issue">
+        <span class="no-issue__title">
+          <span v-if="this.api_limit_exceeded">Github API limit exceeded.</span>
+          <span v-else>No issues found.</span>
+        </span>
+      </li>
+    </ul>
+    <ul v-else class="search-bar__issue-list" v-show="query">
+      <li
+        class="issue"
+        v-for="(issue, index) in issues"
+        :key="index"
+        :class="{ 'issue--selected': index == selected_issue}"
+        @mouseover="selected_issue = index"
+        @click="openSelected()"
+      >
+        <span class="issue__title" :title="issue.title">{{ issue.title }}</span>
+        <div v-if="issue.labels" class="issue__labels">
+          <span
+            class="label"
+            v-for="label in issue.labels"
+            :key="label.id"
+            :style="{ 'background-color': '#'+label.color } "
+          >{{ label.name }}</span>
+        </div>
+        <span class="issue__info">
+          #{{ issue.number }}
+          <span v-if="issue.state=='open'">opened {{ getDays(issue.created_at) }}</span>
+          <span v-else>closed {{ getDays(issue.closed_at) }}</span>
+        </span>
       </li>
     </ul>
   </div>
