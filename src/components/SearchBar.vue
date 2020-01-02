@@ -122,11 +122,51 @@ export default {
       } else if (days_diff == 1) {
         return "yesterday";
       } else if (days_diff <= 10) {
-        return days_diff + " days ago";
+        return Math.floor(days_diff) + " days ago";
       } else {
         return "on " + this.formatDate(created_date);
       }
+    },
+    openSelected() {
+      window.open(this.issues[this.selected_issue].html_url, "_blank");
+    },
+    handleKeyEvent(e) {
+      let keys = [];
+      keys[e.keyCode] = true;
+
+      // Arrow Down
+      if (keys[40]) {
+        this.selected_issue = (this.selected_issue + 1) % this.issues.length;
+        e.preventDefault();
+      }
+
+      // Arrow Up
+      else if (keys[38]) {
+        if (this.selected_issue <= 0) {
+          this.selected_issue = this.issues.length - 1;
+        } else {
+          this.selected_issue--;
+        }
+        e.preventDefault();
+      }
+
+      // Enter
+      if (keys[13]) {
+        this.openSelected();
+        e.preventDefault();
+      }
+
+      // Escape
+      else if (keys[27]) {
+        this.query = null;
+        this.selected_issue = -1;
+        this.api_response = null;
+        e.preventDefault();
+      }
     }
+  },
+  mounted() {
+    document.addEventListener("keydown", this.handleKeyEvent, false);
   }
 };
 </script>
