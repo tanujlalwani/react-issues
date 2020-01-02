@@ -21,8 +21,7 @@
         :key="index"
         :class="{ 'issue--selected': index == selected_issue}"
         :issue="issue"
-        @mouseover="selected_issue = index"
-        @click="openSelected()"
+        :index="index"
       ></search-result>
     </ul>
   </div>
@@ -102,6 +101,9 @@ export default {
     }, 10),
     openSelected() {
       window.open(this.issues[this.selected_issue].html_url, "_blank");
+    },
+    selectIssue(index) {
+      this.selected_issue = index;
     },
     handleKeyEvent(e) {
       let keys = [];

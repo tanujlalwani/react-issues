@@ -1,5 +1,5 @@
 <template>
-  <li class="issue">
+  <li class="issue" @mouseover="selectIssue(index)" @click="openSelected">
     <span class="issue__title" :title="issue.title">{{ issue.title }}</span>
     <div v-if="issue.labels" class="issue__labels">
       <span
@@ -19,7 +19,7 @@
 
 <script>
 export default {
-  props: ["issue"],
+  props: ["issue", "index"],
   methods: {
     formatDate: function(date) {
       var monthNames = [
@@ -58,6 +58,12 @@ export default {
       } else {
         return "on " + this.formatDate(created_date);
       }
+    },
+    selectIssue(index) {
+      this.$parent.selectIssue(index);
+    },
+    openSelected() {
+      this.$parent.openSelected();
     }
   }
 };
