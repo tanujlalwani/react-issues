@@ -63,7 +63,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .issue {
   padding: 7px 15px;
   border-bottom: solid 1px #e1e4e8;
