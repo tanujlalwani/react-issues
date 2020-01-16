@@ -70,7 +70,11 @@ export default {
 </script>
 
 <style lang="scss">
+@import url("https://rsms.me/inter/inter.css");
+
 .issue {
+  font-family: "Inter", sans-serif;
+
   padding: 7px 15px;
   border-bottom: solid 1px #e1e4e8;
   background-color: #fff;

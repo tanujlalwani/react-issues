@@ -1,12 +1,17 @@
 <template>
   <div class="search-bar">
-    <input
-      class="search-bar__input"
-      :class="{ 'search-bar__input--active': query }"
-      v-model="query"
-      @input="search"
-      placeholder="Search for an issue..."
-    />
+    <div
+      class="search-bar__input-container"
+      :class="{ 'search-bar__input-container--active': query }"
+    >
+      <input
+        class="search-bar__input"
+        v-model="query"
+        @input="search"
+        placeholder="Search for an issue..."
+      />
+      <span class="search-bar__autocomplete">{{ autocomplete }}</span>
+    </div>
     <ul v-if="no_results" class="search-bar__issue-list">
       <li class="issue">
         <span class="no-issue__title">
@@ -29,7 +34,6 @@
 
 <script>
 import SearchResult from "@/components/SearchResult.vue";
-import debounce from "../../node_modules/lodash/debounce";
 
 export default {
   components: {
@@ -40,7 +44,8 @@ export default {
       query: null,
       api_response: null,
       api_limit_exceeded: false,
-      selected_issue: -1
+      selected_issue: -1,
+      inputElement: null
     };
   },
   computed: {
@@ -53,9 +58,24 @@ export default {
         this.api_response &&
         this.api_response.total_count > 0
       ) {
-        return this.api_response.items.slice(0, 7);
+        // return this.api_response.items.slice(0, 7);
+        return this.api_response.items.filter(issue =>
+          issue.title.startsWith(this.query)
+        );
       } else {
         return [];
+      }
+    },
+    autocomplete() {
+      if (
+        this.selected_issue != -1 &&
+        this.query != "" &&
+        this.api_response &&
+        !this.api_limit_exceeded
+      ) {
+        return this.issues[this.selected_issue].title.slice(this.query.length);
+      } else {
+        return "";
       }
     },
     no_results() {
@@ -75,7 +95,7 @@ export default {
     }
   },
   methods: {
-    search: debounce(function() {
+    search: function() {
       if (this.query) {
         fetch(this.search_api_url, {
           method: "GET",
@@ -98,7 +118,7 @@ export default {
             this.api_response = data;
           });
       }
-    }, 10),
+    },
     openSelected() {
       window.open(this.issues[this.selected_issue].html_url, "_blank");
     },
@@ -136,23 +156,38 @@ export default {
         this.query = null;
         this.selected_issue = -1;
         this.api_response = null;
+        this.inputElement.style.width = "auto";
         e.preventDefault();
+      }
+    },
+    resizeInput() {
+      if (!this.inputElement) {
+        this.inputElement = document.getElementsByClassName(
+          "search-bar__input"
+        )[0];
+      }
+
+      if (this.inputElement.value.length) {
+        this.inputElement.style.width = this.inputElement.value.length + "ch";
+      } else {
+        this.inputElement.style.width = "auto";
       }
     }
   },
   mounted() {
     document.addEventListener("keydown", this.handleKeyEvent, false);
+    document.addEventListener("input", this.resizeInput, false);
   }
 };
 </script>
 
 <style lang="scss" scoped>
-.search-bar {
-  .search-bar__input {
-    font-size: 15px;
-    font-weight: 500;
-    user-select: none;
+@import url("https://rsms.me/inter/inter.css");
 
+.search-bar {
+  font-family: "Inter", sans-serif;
+
+  .search-bar__input-container {
     width: 35vw;
     padding: 15px;
 
@@ -162,21 +197,53 @@ export default {
     background-color: rgb(241, 241, 241);
     transition: background-color 0.5s ease;
 
-    &:focus {
-      outline: none;
-      background-color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .search-bar__input {
+      font-size: 15px;
+      font-weight: 500;
+      font-family: "Inter", sans-serif;
+      user-select: none;
+
+      border: none;
+      display: inline;
+      font-family: inherit;
+      font-size: inherit;
+      padding: none;
+      background-color: transparent;
+
+      &::placeholder {
+        color: #aaa;
+      }
+
+      &:focus {
+        outline: none;
+      }
     }
 
-    &::placeholder {
-      color: #aaa;
+    .search-bar__autocomplete {
+      font-size: 15px;
+      font-weight: 500;
+      font-family: "Inter", sans-serif;
+      user-select: none;
+
+      width: 25vw;
+
+      color: #999;
+
+      position: relative;
+      left: -0.5ch;
     }
   }
 
-  .search-bar__input--active {
+  .search-bar__input-container--active {
     border-bottom-width: 0px;
     border-radius: 10px 10px 0px 0px;
 
     user-select: text;
+    background-color: #fff;
   }
 
   .search-bar__issue-list {
